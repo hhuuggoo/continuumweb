@@ -23,7 +23,7 @@ def all_coffee_assets(host, port):
         targets.extend(coffee_assets(prefix, host, port))
     return targets
                        
-ignores = [".*~", "^#", "^\.#"]
+ignores = [".*~", "^#", "^\."]
 def coffee_assets(prefix, host, port):
     #walk coffee tree
     ftargets = []
