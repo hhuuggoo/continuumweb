@@ -24,10 +24,17 @@ def all_coffee_assets(host, port):
     return targets
                        
 ignores = [".*~", "^#", "^\."]
-def coffee_assets(prefix, host, port):
+def coffee_assets(prefix, host, port, excludes=None):
     #walk coffee tree
+    if excludes is None:
+        excludes = set()
+    else:
+        excludes = set(excludes)
     ftargets = []
     for path, dirs, files in os.walk(prefix, followlinks=True):
+        if path in excludes:
+            print "coffee_assets() skipping", path
+            continue
         for f in files:
             fname = os.path.join(path, f)
             print fname
@@ -35,15 +42,23 @@ def coffee_assets(prefix, host, port):
     #filter out ignores
     ftargets = [f for f in ftargets if not \
              any([re.match(ignore, os.path.basename(f)) for ignore in ignores])]
-    #make path relative to slugdir
+    
+    return make_urls(ftargets, host, port)    
+
+def make_urls(filenames, host, port):
+    """ Returns a list of URLs to the given files on the filesystem 
+    
+    The filenames should be .coffee files, and the returned URLs
+    will strip the extension appropriately.
+    """
     slugpath = slug_path
-    ftargets = [os.path.relpath(x, slug_path) for x in ftargets]
+    filenames = [os.path.relpath(x, slugpath) for x in filenames]
     
     #remove extension
-    ftargets = [os.path.splitext(f)[0] for f in ftargets]
+    filenames = [os.path.splitext(f)[0] for f in filenames]
     base = "http://%s:%s" % (host, port)
     #make urls
-    return [urlparse.urljoin(base, x) for x in ftargets]
+    return [urlparse.urljoin(base, x) for x in filenames]
     
 def slug_libs(app, libs):
     import flask
